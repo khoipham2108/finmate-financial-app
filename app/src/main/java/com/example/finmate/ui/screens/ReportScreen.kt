@@ -1,17 +1,28 @@
 package com.example.finmate.ui.screens
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.finmate.data.model.Transaction
+import com.example.finmate.ui.theme.BackgroundGray
+import com.example.finmate.ui.theme.PrimaryBlue
+import com.example.finmate.ui.theme.SurfaceWhite
+import com.example.finmate.util.formatVND
 import com.example.finmate.viewmodel.FinanceViewModel
-import java.util.Locale
 
 @Composable
 fun ReportScreen(viewModel: FinanceViewModel) {
@@ -24,31 +35,77 @@ fun ReportScreen(viewModel: FinanceViewModel) {
         .toList()
         .sortedByDescending { it.second }
 
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabs = listOf("Distribution", "Analysis")
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(BackgroundGray)
             .padding(16.dp)
     ) {
         Text(
-            text = "Expense Report",
+            text = "Financial Report",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TabRow(
+            selectedTabIndex = selectedTab,
+            containerColor = Color.Transparent,
+            divider = {},
+            indicator = { tabPositions ->
+                TabRowDefaults.SecondaryIndicator(
+                    Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                    color = PrimaryBlue
+                )
+            }
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    text = { Text(title, fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal) }
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         if (expenseTransactions.isEmpty()) {
-            Text("No expenses recorded yet to show reports.", color = Color.Gray)
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("No data available for reports", color = Color.Gray)
+            }
         } else {
-            Text(
-                text = "Total Expenses: $${String.format(Locale.US, "%.2f", totalExpense)}",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                if (selectedTab == 0) {
+                    item {
+                        DonutChartCard(categoryTotals, totalExpense)
+                    }
+                } else {
+                    item {
+                        BarChartCard(categoryTotals)
+                    }
+                }
 
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                item {
+                    Text(
+                        text = "Category Breakdown",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
                 items(categoryTotals) { (category, amount) ->
-                    CategoryProgressItem(category, amount, totalExpense)
+                    CategoryAnalysisItem(category, amount, totalExpense)
+                }
+                
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
             }
         }
@@ -56,25 +113,100 @@ fun ReportScreen(viewModel: FinanceViewModel) {
 }
 
 @Composable
-fun CategoryProgressItem(category: String, amount: Double, total: Double) {
-    val progress = (amount / total).toFloat()
-    Column {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = category, style = MaterialTheme.typography.bodyMedium)
-            Text(text = "${(progress * 100).toInt()}%", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+fun DonutChartCard(data: List<Pair<String, Double>>, total: Double) {
+    val colors = listOf(PrimaryBlue, Color(0xFF4FC3F7), Color(0xFF81D4FA), Color(0xFFB3E5FC), Color(0xFFE1F5FE))
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(modifier = Modifier.size(200.dp), contentAlignment = Alignment.Center) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    var startAngle = -90f
+                    data.forEachIndexed { index, pair ->
+                        val sweepAngle = (pair.second / total * 360f).toFloat()
+                        drawArc(
+                            color = colors[index % colors.size],
+                            startAngle = startAngle,
+                            sweepAngle = sweepAngle,
+                            useCenter = false,
+                            style = Stroke(width = 30.dp.toPx(), cap = StrokeCap.Round)
+                        )
+                        startAngle += sweepAngle
+                    }
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Total Expenses", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
+                    Text(total.formatVND(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+            }
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier.fillMaxWidth().height(8.dp),
-            trackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
-            strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "$${String.format(Locale.US, "%.2f", amount)}",
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.align(androidx.compose.ui.Alignment.End)
-        )
+    }
+}
+
+@Composable
+fun BarChartCard(data: List<Pair<String, Double>>) {
+    val maxVal = data.maxOfOrNull { it.second } ?: 1.0
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            data.take(5).forEach { (category, amount) ->
+                val progress = (amount / maxVal).toFloat()
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(category, style = MaterialTheme.typography.bodyMedium)
+                        Text(amount.formatVND(), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(12.dp)
+                            .background(PrimaryBlue.copy(alpha = 0.1f), RoundedCornerShape(6.dp))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(progress)
+                                .fillMaxHeight()
+                                .background(PrimaryBlue, RoundedCornerShape(6.dp))
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CategoryAnalysisItem(category: String, amount: Double, total: Double) {
+    val percentage = (amount / total * 100).toInt()
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(category, fontWeight = FontWeight.SemiBold)
+                Text("$percentage% of total spending", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            }
+            Text(amount.formatVND(), fontWeight = FontWeight.Bold, color = PrimaryBlue)
+        }
     }
 }

@@ -82,11 +82,11 @@ fun AddTransactionSheet(
             // Amount
             OutlinedTextField(
                 value = amount,
-                onValueChange = { if (it.all { char -> char.isDigit() || char == '.' }) amount = it },
+                onValueChange = { if (it.all { char -> char.isDigit() }) amount = it },
                 label = { Text("Amount") },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                prefix = { Text("$ ") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                suffix = { Text(" đ") },
                 textStyle = LocalTextStyle.current.copy(fontSize = 24.sp)
             )
 

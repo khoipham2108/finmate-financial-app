@@ -12,13 +12,15 @@ import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryBlue,
-    onPrimary = BackgroundWhite,
+    onPrimary = SurfaceWhite,
     secondary = SecondaryBlue,
     onSecondary = PrimaryBlue,
     background = BackgroundGray,
     onBackground = TextPrimary,
-    surface = BackgroundWhite,
-    onSurface = TextPrimary
+    surface = SurfaceWhite,
+    onSurface = TextPrimary,
+    surfaceVariant = SecondaryBlue,
+    onSurfaceVariant = TextPrimary
 )
 
 @Composable
@@ -26,7 +28,7 @@ fun FinMateTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = LightColorScheme // Minimalist theme often stays light or has subtle dark mode
+    val colorScheme = LightColorScheme
 
     val view = LocalView.current
     if (!view.isInEditMode) {
