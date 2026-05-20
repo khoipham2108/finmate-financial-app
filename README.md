@@ -1,4 +1,4 @@
-# FinMate
+# FinMate 
 
 > A clean, minimalist personal finance management application for Android, powered by next-generation AI reasoning to deliver factual, real-time spending insights directly from user transaction history.
 
@@ -38,7 +38,7 @@ All data fetching and AI inference tasks are securely offloaded from the Main Th
 ### 3. Smart Window Insets Handling
 The text entry layout utilizes Jetpack Compose `Modifier.navigationBarsPadding().imePadding()`. This structural configuration ensures that when the virtual software keyboard slides up, the chat input bar seamlessly adjusts upward, keeping the user's typed text 100% visible and interactive.
 
-### 4. AI Behavior & Ràng buộc an toàn
+### 4. AI Behavior & Safety Constraints
 FinBot operates under a strict system instruction matrix:
 * **Factual Analytics:** It only performs structural breakdowns based on historical transactions.
 * **No Predictive Forecasting:** It is strictly prohibited from delivering financial advice or investment speculations.
@@ -71,3 +71,41 @@ com.example.finmate/
     │   └── MainScreen.kt       # Persistent application wrapper
     │
     └── theme/           # Minimalism Design System configuration (Color.kt, Theme.kt, Type.kt)
+
+## Data Visualization & Reporting
+
+FinMate converts abstract financial records into structured actionable insights through a premium suite of minimalist charts implemented in the `DashboardScreen` and `ReportScreen`:
+
+* **Line Charts:** Used to trace cumulative net worth and daily expense trends over time.
+* **Pie Charts:** Dedicated to displaying categorical distributions (e.g., Food, Shopping, Transport ratio).
+* **Bar Charts:** Optimized for contrasting month-over-month or week-over-week budget thresholds.
+
+---
+
+## Getting Started & Local Installation
+
+Follow these steps to configure the development environment and execute the project locally.
+
+### Prerequisites
+* Android Studio Jellyfish / Koala (or newer)
+* JDK 17 installed and configured
+* Android API Level 34+ Target SDK
+
+### API Key Security Configuration
+To protect sensitive credentials, the Gemini API key is completely isolated from the version control system.
+
+1. Open your local root directory and locate the `local.properties` file (or create it if it is missing).
+2. Append your personal Google AI Studio API key at the bottom of the file:
+   ```properties
+   GEMINI_API_KEY="YOUR_ACTUAL_API_KEY_HERE"
+3.The project build script will automatically inject this value into the compilation pipeline safely, preventing hardcoded leaks inside `ChatViewModel.kt`.
+
+### Building the Project
+
+1. Clone the repository to your local workstation:
+   ```bash
+   git clone [https://github.com/your-username/FinMate.git](https://github.com/your-username/FinMate.git)
+2. Launch Android Studio and choose Open an Existing Project, then select the cloned directory.
+3. Wait for the IDE to finish indexing, then click on the Sync Project with Gradle Files button at the top right.
+4. Connect an Android Virtual Device (Emulator) or a physical debug device.
+5. Click the green Run triangle icon (or press Shift + F10) to compile and launch FinMate.
