@@ -71,6 +71,7 @@ com.example.finmate/
     │   └── MainScreen.kt       # Persistent application wrapper
     │
     └── theme/           # Minimalism Design System configuration (Color.kt, Theme.kt, Type.kt)
+---
 
 ## Data Visualization & Reporting
 
